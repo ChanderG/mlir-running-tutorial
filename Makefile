@@ -1,5 +1,7 @@
 all: lower compile
 
+# add this to the initial section of the passes
+# --llvm-request-c-wrappers
 lower:
 	$$BINDIR/mlir-opt -pass-pipeline="builtin.module(func.func(tosa-to-linalg))" add.mlir | \
         $$BINDIR/mlir-opt -one-shot-bufferize="bufferize-function-boundaries=true" \
@@ -11,7 +13,8 @@ lower:
     -convert-arith-to-llvm \
     -finalize-memref-to-llvm \
     -reconcile-unrealized-casts \
-    -canonicalize > add_l.mlir
+    -canonicalize \
+	> add_l.mlir
 	$$BINDIR/mlir-translate --mlir-to-llvmir add_l.mlir -o add.ll
 
 compile:
