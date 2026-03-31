@@ -26,11 +26,11 @@ int main() {
 
   cout << "Some sample values are: " << endl;
   for (int i = 0; i < 10; i++) {
-    cout << &res.aligned[i] << " ";
+    cout << res.aligned[i] << " ";
   }
   cout << endl;
-  for (int i = 0; i < 10; i++) {
-    cout << &res.allocated[i] << " ";
-  }
-  cout << endl;
+
+  cout << "Allocated: " << (uintptr_t)res.allocated;
+  cout << " Aligned: " << (uintptr_t)res.aligned << endl;
+  cout << "Diff is: " << res.aligned - res.allocated << endl;
 }
