@@ -1,7 +1,11 @@
 #include "iostream"
 #include <cstdint>
 #include <memory>
+#include <random>
+
 using namespace std;
+
+mt19937 rng;
 
 extern "C" {
   void _mlir_ciface_myfunc(void*, void*, void*);
@@ -50,12 +54,14 @@ void initRandomTensor2F(Tensor2F *t) {
 
   for (int i = 0; i < x; i++) {
     for (int j = 0; j < y; j++) {
-      base[i*xs + j*ys] = 1.0;
+      base[i*xs + j*ys] = 1.0*rng()/(rng.max() - rng.min());
     }
   }
 }
 
 int main() {
+  rng.seed(42);
+
   auto t = createTensor2F(2, 5);
   initRandomTensor2F(&t);
 
