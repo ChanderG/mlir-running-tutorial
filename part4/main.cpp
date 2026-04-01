@@ -3,6 +3,7 @@
 #include <memory>
 #include <random>
 #include <cstring>
+#include <chrono>
 
 using namespace std;
 
@@ -61,6 +62,17 @@ void initRandomTensor2F(Tensor2F *t) {
   }
 }
 
+auto timeF =
+    [](auto&& func, auto&&... params) {
+        // get time before function invocation
+        auto start = chrono::high_resolution_clock::now();
+        // function invocation using perfect forwarding
+        forward<decltype(func)>(func)(forward<decltype(params)>(params)...);
+        // get time after function invocation
+        auto end = chrono::high_resolution_clock::now();
+        return (end - start) / 1ms;
+     };
+
 int main() {
   rng.seed(42);
 
@@ -71,6 +83,6 @@ int main() {
   initRandomTensor2F(&in1);
   initRandomTensor2F(&in2);
 
-  func_l(&res1, &in1, &in2);
-  func_o(&res2, &in1, &in2);
+  cout << "lower: " << timeF(func_l, &res1, &in1, &in2) << " ms" << endl;
+  cout << "opt: " << timeF(func_o, &res2, &in1, &in2) << " ms" << endl;
 }
