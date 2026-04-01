@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <memory>
 #include <random>
+#include <cassert>
 #include <cstring>
 #include <chrono>
 
@@ -62,6 +63,46 @@ void initRandomTensor2F(Tensor2F *t) {
   }
 }
 
+float get(Tensor2F *t, int i, int j) {
+  // Not the most efficient, but ok for now
+  float* base = (float*)((uintptr_t*)t->aligned + t->offset);
+  return base[i*t->strides[0] + j*t->strides[1]];
+}
+
+void set(Tensor2F *t, int i, int j, float val) {
+  // Not the most efficient, but ok for now
+  float* base = (float*)((uintptr_t*)t->aligned + t->offset);
+  base[i*t->strides[0] + j*t->strides[1]] = val;
+}
+
+void calcReference(Tensor2F*c, Tensor2F *a, Tensor2F* b) {
+  auto x = a->sizes[0];
+  auto y = a->sizes[1];
+
+  auto y_ = b->sizes[0];
+  auto z = b->sizes[1];
+
+  assert(y == y_ && "Matrices dimensions should match up for matmul");
+
+  // naive implementation - can take a lot of time
+  for (int i = 0; i < x; i++) {
+    for (int k = 0; k < z; k++) {
+      // calc result for c[i, k]
+      float acc = 0.0;
+      for (int j = 0; j < y; j++) {
+        acc += get(a, i, j)*get(b, j, k);
+      }
+
+      // let's do the fused relu here
+      if (acc < 0) {
+        acc = 0;
+      }
+      set(c, i, k, acc);
+    }
+  }
+
+  return;
+}
 auto timeF =
     [](auto&& func, auto&&... params) {
         // get time before function invocation
@@ -79,10 +120,13 @@ int main() {
   auto in1 = createTensor2F(256, 512);
   auto in2 = createTensor2F(512, 1024);
   Tensor2F res1, res2;
+  // for the reference output
+  auto ref = createTensor2F(256, 1024);
 
   initRandomTensor2F(&in1);
   initRandomTensor2F(&in2);
 
+  cout << "ref: " << timeF(calcReference, &ref, &in1, &in2) << " ms" << endl;
   cout << "lower: " << timeF(func_l, &res1, &in1, &in2) << " ms" << endl;
   cout << "opt: " << timeF(func_o, &res2, &in1, &in2) << " ms" << endl;
 }
