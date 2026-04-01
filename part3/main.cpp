@@ -62,12 +62,15 @@ void initRandomTensor2F(Tensor2F *t) {
 int main() {
   rng.seed(42);
 
-  auto t = createTensor2F(2, 5);
-  initRandomTensor2F(&t);
+  auto in1 = createTensor2F(256, 512);
+  auto in2 = createTensor2F(512, 1024);
+  Tensor2F res;
 
-  cout << "Tensor is: ";
-  for (int i = 0; i < 10; i++) {
-    cout << t.aligned[i] << " ";
-  }
-  cout << endl;
+  initRandomTensor2F(&in1);
+  initRandomTensor2F(&in2);
+
+  _mlir_ciface_myfunc(&res, &in1, &in2);
+
+  cout << "Tensor is: " << res.sizes[0] << "x" << res.sizes[1] << endl;
+  cout << "Strides are: " << res.strides[0] << "x" << res.strides[1] << endl;
 }
