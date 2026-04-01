@@ -1,3 +1,5 @@
+all: lower opt
+
 lower:
 	$$BINDIR/mlir-opt demo2.mlir \
 	-one-shot-bufferize="bufferize-function-boundaries=true" \
